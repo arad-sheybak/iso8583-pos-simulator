@@ -11,7 +11,7 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 <p align="center">
 <img src="./images/img_iso8583.png" alt="POS Simulator Demo" width="512"/>
 </p>
----
+
 
 ## 🚀 Features
 
@@ -45,9 +45,10 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 
 ## 🖥 Project Structure
 
-    /android-client → POS terminal simulator
-    /server-emulator → ISO8583 host test server
-    /docs → Technical documentation
+    iso8583-pos-simulator
+    ├── android-client → POS terminal simulator
+    ├── server-emulator → ISO8583 host test server
+    └── docs → Technical documentation
 
 
 ---
