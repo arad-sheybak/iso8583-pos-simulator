@@ -87,7 +87,7 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/iso8583-pos-simulator.git
-
+```
 2.Open in Android Studio
 
 3.Run the android-client module on an emulator or device
