@@ -100,13 +100,13 @@ git clone https://github.com/yourusername/iso8583-pos-simulator.git
 If you find this project helpful or educational, give it a ⭐!
 It helps the community and motivates continued development.
 
-- **Learn ISO8583 from scratch
+- **Learn ISO8583 from scratch**
 
-- **Understand POS-to-host communication
+- **Understand POS-to-host communication**
 
-- **Hands-on security & encryption experience
+- **Hands-on security & encryption experience**
 
-- **Fully open-source, educational, and safe
+- **Fully open-source, educational, and safe**
 ---
 ## 💡 Contributing
 
