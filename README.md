@@ -8,8 +8,9 @@
 A **fully open-source Android POS terminal simulator** using the **ISO8583 standard**.  
 Learn how payment terminals communicate with a host server using **ISO8583 messages**, **3DES encryption**, **PIN Block generation**, and **TCP/IP networking**.
 
+<p align="center">
 <img src="./images/img_iso8583.png" alt="POS Simulator Demo" width="512"/>
-
+</p>
 ---
 
 ## 🚀 Features
