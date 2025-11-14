@@ -88,31 +88,31 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 ```bash
 git clone https://github.com/yourusername/iso8583-pos-simulator.git
 ```
-2.Open in Android Studio
+2. Open in Android Studio
 
-3.Run the android-client module on an emulator or device
+3. Run the android-client module on an emulator or device
 
-4.Run the server-emulator module to simulate host responses
+4. Run the server-emulator module to simulate host responses
 
-
-⭐ Why Star This Project?
+---
+## ⭐ Why Star This Project?
 
 If you find this project helpful or educational, give it a ⭐!
 It helps the community and motivates continued development.
 
-.Learn ISO8583 from scratch
+- **Learn ISO8583 from scratch
 
-.Understand POS-to-host communication
+- **Understand POS-to-host communication
 
-.Hands-on security & encryption experience
+- **Hands-on security & encryption experience
 
-.Fully open-source, educational, and safe
-
-💡 Contributing
+- **Fully open-source, educational, and safe
+---
+## 💡 Contributing
 
 Contributions, issues, and feature requests are welcome!
 
-📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE
  file for details.
