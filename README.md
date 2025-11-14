@@ -3,7 +3,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-blue?logo=kotlin)](https://kotlinlang.org/)
 [![Android](https://img.shields.io/badge/Android-100%25-green?logo=android)](https://developer.android.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/yourusername/iso8583-pos-simulator?style=social)](https://github.com/yourusername/iso8583-pos-simulator/stargazers)
+[![Stars](https://img.shields.io/github/stars/arad-sheybak/iso8583-pos-simulator?style=social)](https://github.com/arad-sheybak/iso8583-pos-simulator/stargazers)
 
 A **fully open-source Android POS terminal simulator** using the **ISO8583 standard**.  
 Learn how payment terminals communicate with a host server using **ISO8583 messages**, **3DES encryption**, **PIN Block generation**, and **TCP/IP networking**.
