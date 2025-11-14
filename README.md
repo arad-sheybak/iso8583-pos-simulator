@@ -42,9 +42,9 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 
 ## 🖥 Project Structure
 
-/android-client → POS terminal simulator
-/server-emulator → ISO8583 host test server
-/docs → Technical documentation
+  /android-client → POS terminal simulator
+  /server-emulator → ISO8583 host test server
+  /docs → Technical documentation
 
 
 ---
