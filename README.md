@@ -78,7 +78,7 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 
 ![POS Simulator Demo](https://media.giphy.com/media/your-demo-gif.gif)
 
-*(Optional: Replace with actual GIF/screenshots of the app UI)*
+*(there is no screen shot now, but in the future we will add them here)*
 
 ---
 
@@ -114,5 +114,4 @@ Contributions, issues, and feature requests are welcome!
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE
- file for details.
+This project is licensed under the MIT License 
