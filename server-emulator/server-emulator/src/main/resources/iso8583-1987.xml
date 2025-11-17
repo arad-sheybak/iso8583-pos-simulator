@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<isopackager>
+    <field
+            id="0"
+            length="4"
+            name="Message Type Indicator"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="2"
+            length="19"
+            name="Primary Account Number"
+            class="org.jpos.iso.IFA_LLNUMERIC"/>
+
+    <field
+            id="3"
+            length="6"
+            name="Processing Code"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="4"
+            length="12"
+            name="Amount, Transaction"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="11"
+            length="6"
+            name="Systems Trace Audit Number"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="39"
+            length="2"
+            name="Response Code"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="41"
+            length="8"
+            name="Card Acceptor Terminal Identification"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+    <field
+            id="42"
+            length="15"
+            name="Card Acceptor Identification Code"
+            class="org.jpos.iso.IFA_NUMERIC"/>
+
+
+</isopackager>

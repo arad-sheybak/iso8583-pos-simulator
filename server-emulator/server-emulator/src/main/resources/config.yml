@@ -1,0 +1,9 @@
+server:
+  host: "0.0.0.0"
+  port: 5000
+
+# rules: approve if amount <= approve_max_amount
+rules:
+  approve_max_amount: 100000
+  blacklist_pans:
+    - "4000000000000002"
