@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!ELEMENT isopackager (field*, isofieldpackager*)>
+        <!ATTLIST isopackager
+                maxValidField CDATA #IMPLIED
+                bitmapField CDATA #IMPLIED
+                firstField CDATA #IMPLIED
+                emitBitmap (true|false) #IMPLIED
+                headerLength CDATA #IMPLIED>
+
+        <!ELEMENT field (#PCDATA)>
+        <!ATTLIST field
+                id CDATA #REQUIRED
+                length CDATA #REQUIRED
+                name CDATA #REQUIRED
+                class NMTOKEN #REQUIRED
+                token CDATA #IMPLIED
+                pad (true|false) #IMPLIED>
+
+        <!ELEMENT isofieldpackager (field*, isofieldpackager*)>
+        <!ATTLIST isofieldpackager
+                id CDATA #REQUIRED
+                name CDATA #REQUIRED
+                length CDATA #REQUIRED
+                class NMTOKEN #REQUIRED
+                token CDATA #IMPLIED
+                pad (true|false) #IMPLIED
+                packager NMTOKEN #REQUIRED
+                emitBitmap (true|false) #IMPLIED
+                maxValidField CDATA #IMPLIED
+                bitmapField CDATA #IMPLIED
+                firstField CDATA #IMPLIED
+                headerLength CDATA #IMPLIED>

@@ -1,12 +1,10 @@
-package dev.iso8583.server
-
+import dev.iso8583.server.MessageProcessor
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import java.io.IOException
 import java.net.Socket
-import kotlin.experimental.and
 
 class ConnectionHandler(private val socket: Socket) {
     private val logger = LoggerFactory.getLogger(ConnectionHandler::class.java)
@@ -14,41 +12,46 @@ class ConnectionHandler(private val socket: Socket) {
 
     suspend fun handle() = withContext(Dispatchers.IO) {
         logger.info("Handling connection from ${socket.inetAddress.hostAddress}:${socket.port}")
-        val input = DataInputStream(socket.getInputStream())
-        val output = DataOutputStream(socket.getOutputStream())
 
         try {
-            while (!socket.isClosed) {
-                // خواندن header طول (2 بایت big-endian)
-                val hi = tryReadByte(input) ?: break
-                val lo = tryReadByte(input) ?: break
-                val length = ((hi.toInt() and 0xFF) shl 8) or (lo.toInt() and 0xFF)
-                if (length <= 0) {
-                    logger.warn("Invalid message length: $length - closing connection")
-                    break
-                }
+            socket.soTimeout = 30000 // تایم‌اوت 30 ثانیه
+            val input = socket.getInputStream()
+            val output = socket.getOutputStream()
 
-                // خواندن payload
-                val payload = ByteArray(length)
-                var read = 0
-                while (read < length) {
-                    val r = input.read(payload, read, length - read)
-                    if (r == -1) {
-                        throw RuntimeException("Stream closed while reading payload")
+            while (!socket.isClosed && socket.isConnected) {
+                if (input.available() > 0) {
+                    val hi = input.read()
+                    if (hi == -1) break
+                    val lo = input.read()
+                    if (lo == -1) break
+
+                    val length = ((hi and 0xFF) shl 8) or (lo and 0xFF)
+                    if (length <= 0 || length > 8192) {
+                        logger.warn("Invalid message length: $length")
+                        break
                     }
-                    read += r
+
+                    val payload = ByteArray(length)
+                    var read = 0
+                    while (read < length) {
+                        val r = input.read(payload, read, length - read)
+                        if (r == -1) {
+                            throw IOException("Stream closed while reading payload")
+                        }
+                        read += r
+                    }
+
+                    logger.info("Received message (len=$length)")
+                    val responsePayload = processor.process(payload)
+
+                    val respLen = responsePayload.size
+                    output.write(byteArrayOf((respLen ushr 8).toByte(), respLen.toByte()))
+                    output.write(responsePayload)
+                    output.flush()
+                    logger.info("Sent response (len=$respLen)")
+                } else {
+                    delay(100) // کاهش مصرف CPU
                 }
-
-                // پردازش پیام
-                val responsePayload = processor.process(payload)
-
-                // ارسال پاسخ با همان فریمینگ (2 بایت طول + payload)
-                val respLen = responsePayload.size
-                output.writeByte((respLen ushr 8) and 0xFF)
-                output.writeByte(respLen and 0xFF)
-                output.write(responsePayload)
-                output.flush()
-                logger.info("Sent response (len=$respLen) to ${socket.inetAddress.hostAddress}:${socket.port}")
             }
         } catch (e: Exception) {
             logger.error("Connection error: ${e.message}", e)
@@ -57,14 +60,6 @@ class ConnectionHandler(private val socket: Socket) {
                 socket.close()
             } catch (_: Exception) {}
             logger.info("Connection closed: ${socket.inetAddress.hostAddress}:${socket.port}")
-        }
-    }
-
-    private fun tryReadByte(input: DataInputStream): Byte? {
-        return try {
-            input.readByte()
-        } catch (e: Exception) {
-            null
         }
     }
 }

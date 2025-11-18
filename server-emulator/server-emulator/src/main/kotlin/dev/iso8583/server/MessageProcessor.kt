@@ -7,32 +7,267 @@ class MessageProcessor {
     private val logger = LoggerFactory.getLogger(MessageProcessor::class.java)
 
     fun process(payload: ByteArray): ByteArray {
+        logger.info("Received raw payload (${payload.size} bytes)")
+        logger.info("Payload HEX: ${HexUtils.toHex(payload)}")
+
+        // پارس کردن پیام ISO
         val isoMessage: ISOMsg = try {
             MessageFactory.parse(payload)
         } catch (e: Exception) {
-            logger.error("Failed to parse message", e)
-            return payload
+            logger.error("Failed to parse ISO message: ${e.message}")
+            logger.debug("Parsing error details:", e)
+            return buildErrorResponse("96", "Message parsing error")
         }
 
-        logger.info("Parsed ISO Message: MTI=${isoMessage.getMTI()}")
-        isoMessage.children.forEach { field->
-            if (isoMessage.hasField(field.toString())){
-                logger.info(" Field #$field = ${isoMessage.value.toString()}")
+        // لاگ پیام دریافتی
+        MessageFactory.logMessage(isoMessage, "INCOMING")
 
+        val mti = isoMessage.getMTI()
+        logger.info("Processing message with MTI: $mti")
+
+        // پردازش بر اساس نوع پیام
+        val responseBytes: ByteArray = try {
+            when (mti) {
+                "0800" -> processNetworkMessage(isoMessage)
+                "0200", "0100" -> processFinancialMessage(isoMessage)
+                "0400" -> processReversalMessage(isoMessage)
+                else -> processUnknownMessage(isoMessage)
+            }
+        } catch (e: Exception) {
+            logger.error("Error processing message MTI $mti: ${e.message}")
+            logger.debug("Processing error details:", e)
+            buildErrorResponse("96", "Processing error")
+        }
+
+        // لاگ پیام پاسخ
+        try {
+            val responseMsg = MessageFactory.parse(responseBytes)
+            MessageFactory.logMessage(responseMsg, "OUTGOING")
+        } catch (e: Exception) {
+            logger.info("Response HEX: ${HexUtils.toHex(responseBytes)}")
+        }
+
+        logger.info("Successfully processed MTI: $mti")
+        return responseBytes
+    }
+
+    private fun processNetworkMessage(message: ISOMsg): ByteArray {
+        logger.info("Processing network management message")
+
+        // بررسی فیلد 70 (Network Management Information Code)
+        if (message.hasField(70)) {
+            val networkCode = message.getString(70)
+            logger.info("Network management code: $networkCode")
+
+            return when (networkCode) {
+                "001" -> {
+                    logger.info("Sign-on request")
+                    MessageFactory.createSignOnResponse()
+                }
+                "002" -> {
+                    logger.info("Sign-off request")
+                    MessageFactory.createSignOffResponse()
+                }
+                "301" -> {
+                    logger.info("Echo test request")
+                    MessageFactory.createEchoResponse()
+                }
+                else -> {
+                    logger.warn("Unknown network management code: $networkCode")
+                    MessageFactory.buildResponse(message)
+                }
             }
         }
 
+        // اگر فیلد 70 وجود ندارد، پاسخ استاندارد ایجاد کن
+        return MessageFactory.buildResponse(message)
+    }
 
-        val responseBytes: ByteArray = try {
-            MessageFactory.buildResponse(isoMessage)
-        } catch (e: Exception) {
-            logger.error("Failed to build response message", e)
-            return payload
+    private fun processFinancialMessage(message: ISOMsg): ByteArray {
+        logger.info("Processing financial transaction message")
+
+        // اعتبارسنجی فیلدهای ضروری
+        val validationResult = validateFinancialMessage(message)
+        if (validationResult != null) {
+            logger.warn("Validation failed: ${validationResult.second}")
+            return buildErrorResponse(validationResult.first, validationResult.second)
         }
 
-        val responseHex = HexUtils.toHex(responseBytes)
-        logger.info("Response (HEX): $responseHex")
+        // پردازش تراکنش مالی
+        try {
+            // استخراج اطلاعات تراکنش
+            val pan = if (message.hasField(2)) message.getString(2) else "N/A"
+            val amount = if (message.hasField(4)) message.getString(4) else "N/A"
+            val processingCode = if (message.hasField(3)) message.getString(3) else "N/A"
 
-        return responseBytes
+            logger.info("Transaction details - PAN: $pan, Amount: $amount, ProcessingCode: $processingCode")
+
+            // شبیه‌سازی پردازش تراکنش
+            simulateTransactionProcessing(message)
+
+            // ایجاد پاسخ
+            return MessageFactory.buildResponse(message)
+
+        } catch (e: Exception) {
+            logger.error("Error in financial transaction processing: ${e.message}")
+            return buildErrorResponse("96", "Transaction processing error")
+        }
+    }
+
+    private fun processReversalMessage(message: ISOMsg): ByteArray {
+        logger.info("Processing reversal message")
+
+        // برای پیام‌های reversal، معمولاً همان MTI با کد پاسخ 00 برمی‌گردانیم
+        val response = MessageFactory.buildResponse(message)
+
+        // اگر reversal موفق بود، لاگ کنیم
+        try {
+            val responseMsg = MessageFactory.parse(response)
+            if (responseMsg.getString(39) == "00") {
+                logger.info("Reversal processed successfully")
+            }
+        } catch (e: Exception) {
+            logger.debug("Could not parse reversal response for logging")
+        }
+
+        return response
+    }
+
+    private fun processUnknownMessage(message: ISOMsg): ByteArray {
+        logger.warn("Unknown message type: ${message.getMTI()}")
+
+        // برای پیام‌های ناشناخته، پاسخ خطا برمی‌گردانیم
+        return buildErrorResponse("94", "Unknown message type")
+    }
+
+    private fun validateFinancialMessage(message: ISOMsg): Pair<String, String>? {
+        // بررسی وجود فیلدهای اجباری
+        if (!message.hasField(2)) {
+            return Pair("02", "PAN required")
+        }
+
+        if (!message.hasField(3)) {
+            return Pair("03", "Processing code required")
+        }
+
+        if (!message.hasField(4)) {
+            return Pair("13", "Amount required")
+        }
+
+        if (!message.hasField(11)) {
+            return Pair("12", "STAN required")
+        }
+
+        // بررسی فرمت PAN
+        if (message.hasField(2)) {
+            val pan = message.getString(2)
+            if (pan.length < 13 || pan.length > 19 || !pan.all { it.isDigit() }) {
+                return Pair("02", "Invalid PAN format")
+            }
+        }
+
+        // بررسی مقدار تراکنش
+        if (message.hasField(4)) {
+            val amountStr = message.getString(4)
+            try {
+                val amount = amountStr.toLong()
+                if (amount <= 0) {
+                    return Pair("13", "Invalid transaction amount")
+                }
+            } catch (e: NumberFormatException) {
+                return Pair("13", "Invalid amount format")
+            }
+        }
+
+        // همه چیز OK
+        return null
+    }
+
+    private fun simulateTransactionProcessing(message: ISOMsg) {
+        // شبیه‌سازی تاخیر در پردازش
+        try {
+            Thread.sleep(50)
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+
+        // شبیه‌سازی تولید کد تأیید
+        if (message.getMTI() == "0100" || message.getMTI() == "0200") {
+            logger.debug("Simulating transaction processing...")
+        }
+    }
+
+    private fun buildErrorResponse(responseCode: String, reason: String): ByteArray {
+        logger.warn("Building error response: $responseCode - $reason")
+
+        val errorMsg = ISOMsg()
+        errorMsg.packager = MessageFactory.getPackager()
+
+        // سعی می‌کنیم یک پاسخ معتبر بر اساس کد خطا ایجاد کنیم
+        errorMsg.setMTI("0810")
+        errorMsg.set(39, responseCode)
+
+        // اضافه کردن اطلاعات اضافی در صورت امکان
+        try {
+            errorMsg.set(44, reason.take(25))
+        } catch (e: Exception) {
+            logger.debug("Could not set field 44: ${e.message}")
+        }
+
+        // تنظیم فیلدهای تاریخ و زمان
+        setBasicDateTimeFields(errorMsg)
+
+        return errorMsg.pack()
+    }
+
+    private fun setBasicDateTimeFields(msg: ISOMsg) {
+        val currentTime = java.time.LocalDateTime.now()
+
+        // تنظیم فیلدهای تاریخ و زمان - به صورت ساده و بدون چک کردن packager
+        try {
+            val transmissionDateTime = currentTime.format(java.time.format.DateTimeFormatter.ofPattern("MMddHHmmss"))
+            msg.set(7, transmissionDateTime)
+        } catch (e: Exception) {
+            logger.debug("Could not set field 7: ${e.message}")
+        }
+
+        try {
+            val localTime = currentTime.format(java.time.format.DateTimeFormatter.ofPattern("HHmmss"))
+            msg.set(12, localTime)
+        } catch (e: Exception) {
+            logger.debug("Could not set field 12: ${e.message}")
+        }
+
+        try {
+            val localDate = currentTime.format(java.time.format.DateTimeFormatter.ofPattern("MMdd"))
+            msg.set(13, localDate)
+        } catch (e: Exception) {
+            logger.debug("Could not set field 13: ${e.message}")
+        }
+    }
+
+    fun healthCheck(): Boolean {
+        return try {
+            // بررسی سلامت packager
+            val testMsg = ISOMsg()
+            testMsg.packager = MessageFactory.getPackager()
+            testMsg.setMTI("0800")
+            testMsg.set(70, "301")
+            val packed = testMsg.pack()
+            packed.isNotEmpty()
+        } catch (e: Exception) {
+            logger.error("Health check failed: ${e.message}")
+            false
+        }
+    }
+
+    // متد کمکی برای بررسی اینکه آیا پیام خروجی معتبر است
+    fun isValidResponse(responseBytes: ByteArray): Boolean {
+        return try {
+            MessageFactory.parse(responseBytes)
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }
