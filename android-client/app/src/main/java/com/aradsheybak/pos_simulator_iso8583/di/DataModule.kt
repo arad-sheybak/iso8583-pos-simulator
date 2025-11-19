@@ -19,7 +19,7 @@ val dataModule = module {
     // Config
     single {
         ISO8583Config(
-            serverHost = "192.168.1.100",  // Change to your server IP
+            serverHost = "192.168.1.162",  // Change to your server IP
             serverPort = 5000,
             timeout = 10000
         )

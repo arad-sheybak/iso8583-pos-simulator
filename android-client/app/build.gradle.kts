@@ -39,6 +39,32 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/*.version"
+            excludes += "/META-INF/*.properties"
+            excludes += "/META-INF/services/*"
+            excludes += "**/LICENSE"
+            excludes += "**/LICENSE.txt"
+            excludes += "**/NOTICE"
+            excludes += "**/NOTICE.txt"
+            pickFirsts += listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
+        }
+    }
+
 }
 
 dependencies {
@@ -65,10 +91,15 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
     // ISO8583
-    implementation(libs.jpos)
+//    implementation(libs.jpos)
 
-    // Encryption
-    implementation(libs.bouncycastle)
+    implementation(libs.jpos) {
+        exclude(group = "org.bouncycastle", module = "*")
+        exclude(group = "org.apache.sshd", module = "*")
+        }
+
+        // Encryption
+//    implementation(libs.bouncycastle)
 
     // Compose ConstraintLayout
     implementation(libs.androidx.constraintlayout.compose)
