@@ -84,7 +84,7 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 
 
 ### Real-time ISO8583 Transaction Flow
-![Transaction Demo](./images/iso8583-demo.gif)
+![Transaction Demo](./images/iso8583_app_screen_record.gif)
 
 *Enter card details → Send secure transaction → Receive ISO8583 response*
 
