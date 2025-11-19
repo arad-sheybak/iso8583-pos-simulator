@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Material Icons
+    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.compose.material.icons.extended)
 
     // Koin
     implementation(libs.koin.android)
@@ -67,6 +70,8 @@ dependencies {
     // Encryption
     implementation(libs.bouncycastle)
 
+    // Compose ConstraintLayout
+    implementation(libs.androidx.constraintlayout.compose)
     // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
