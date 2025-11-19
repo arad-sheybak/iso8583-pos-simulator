@@ -82,7 +82,11 @@ Learn how payment terminals communicate with a host server using **ISO8583 messa
 
 ![POS Simulator Demo](https://media.giphy.com/media/your-demo-gif.gif)
 
-*(there is no screen shot now, but in the future we will add them here)*
+
+### Real-time ISO8583 Transaction Flow
+![Transaction Demo](./images/iso8583-demo.gif)
+
+*Enter card details → Send secure transaction → Receive ISO8583 response*
 
 ---
 
