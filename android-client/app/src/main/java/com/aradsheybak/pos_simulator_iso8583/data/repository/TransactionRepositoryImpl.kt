@@ -1,5 +1,7 @@
 package com.aradsheybak.pos_simulator_iso8583.data.repository
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.aradsheybak.pos_simulator_iso8583.core.domain.entity.ISO8583Config
 import com.aradsheybak.pos_simulator_iso8583.core.domain.entity.Transaction
 import com.aradsheybak.pos_simulator_iso8583.core.domain.entity.TransactionResult
@@ -13,6 +15,7 @@ class TransactionRepositoryImpl(
     private val config: ISO8583Config
 ) : TransactionRepository {
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun sendTransaction(transaction: Transaction): TransactionResult {
         println("🔄 Starting transaction for PAN: ${transaction.pan}")
 

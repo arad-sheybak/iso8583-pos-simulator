@@ -45,7 +45,7 @@ class TransactionMapper {
     private fun buildRealISOMessage(transaction: Transaction): ByteArray {
         val msg = ISOMsg()
         val packager = createSimplePackager()
-        msg.packager = packager  // 🔑 این خط رو اضافه کن
+        msg.packager = packager
 
         // Set MTI (Message Type Indicator)
         msg.setMTI("0200") // Financial transaction request
@@ -79,7 +79,7 @@ class TransactionMapper {
         return try {
             val msg = ISOMsg()
             val packager = createSimplePackager()
-            msg.packager = packager  // 🔑 این خط رو اضافه کن
+            msg.packager = packager
             msg.unpack(response)
 
             TransactionResult(
