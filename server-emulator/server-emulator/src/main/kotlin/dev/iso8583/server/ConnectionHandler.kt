@@ -14,7 +14,7 @@ class ConnectionHandler(private val socket: Socket) {
         logger.info("Handling connection from ${socket.inetAddress.hostAddress}:${socket.port}")
 
         try {
-            socket.soTimeout = 30000 // تایم‌اوت 30 ثانیه
+            socket.soTimeout = 30000
             val input = socket.getInputStream()
             val output = socket.getOutputStream()
 
@@ -50,7 +50,7 @@ class ConnectionHandler(private val socket: Socket) {
                     output.flush()
                     logger.info("Sent response (len=$respLen)")
                 } else {
-                    delay(100) // کاهش مصرف CPU
+                    delay(100)
                 }
             }
         } catch (e: Exception) {

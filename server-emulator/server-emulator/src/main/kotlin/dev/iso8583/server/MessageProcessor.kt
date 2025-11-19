@@ -10,7 +10,6 @@ class MessageProcessor {
         logger.info("Received raw payload (${payload.size} bytes)")
         logger.info("Payload HEX: ${HexUtils.toHex(payload)}")
 
-        // پارس کردن پیام ISO
         val isoMessage: ISOMsg = try {
             MessageFactory.parse(payload)
         } catch (e: Exception) {
@@ -19,13 +18,11 @@ class MessageProcessor {
             return buildErrorResponse("96", "Message parsing error")
         }
 
-        // لاگ پیام دریافتی
         MessageFactory.logMessage(isoMessage, "INCOMING")
 
         val mti = isoMessage.getMTI()
         logger.info("Processing message with MTI: $mti")
 
-        // پردازش بر اساس نوع پیام
         val responseBytes: ByteArray = try {
             when (mti) {
                 "0800" -> processNetworkMessage(isoMessage)
@@ -39,7 +36,6 @@ class MessageProcessor {
             buildErrorResponse("96", "Processing error")
         }
 
-        // لاگ پیام پاسخ
         try {
             val responseMsg = MessageFactory.parse(responseBytes)
             MessageFactory.logMessage(responseMsg, "OUTGOING")
@@ -54,7 +50,6 @@ class MessageProcessor {
     private fun processNetworkMessage(message: ISOMsg): ByteArray {
         logger.info("Processing network management message")
 
-        // بررسی فیلد 70 (Network Management Information Code)
         if (message.hasField(70)) {
             val networkCode = message.getString(70)
             logger.info("Network management code: $networkCode")
@@ -79,33 +74,27 @@ class MessageProcessor {
             }
         }
 
-        // اگر فیلد 70 وجود ندارد، پاسخ استاندارد ایجاد کن
         return MessageFactory.buildResponse(message)
     }
 
     private fun processFinancialMessage(message: ISOMsg): ByteArray {
         logger.info("Processing financial transaction message")
 
-        // اعتبارسنجی فیلدهای ضروری
         val validationResult = validateFinancialMessage(message)
         if (validationResult != null) {
             logger.warn("Validation failed: ${validationResult.second}")
             return buildErrorResponse(validationResult.first, validationResult.second)
         }
 
-        // پردازش تراکنش مالی
         try {
-            // استخراج اطلاعات تراکنش
             val pan = if (message.hasField(2)) message.getString(2) else "N/A"
             val amount = if (message.hasField(4)) message.getString(4) else "N/A"
             val processingCode = if (message.hasField(3)) message.getString(3) else "N/A"
 
             logger.info("Transaction details - PAN: $pan, Amount: $amount, ProcessingCode: $processingCode")
 
-            // شبیه‌سازی پردازش تراکنش
             simulateTransactionProcessing(message)
 
-            // ایجاد پاسخ
             return MessageFactory.buildResponse(message)
 
         } catch (e: Exception) {
@@ -117,10 +106,8 @@ class MessageProcessor {
     private fun processReversalMessage(message: ISOMsg): ByteArray {
         logger.info("Processing reversal message")
 
-        // برای پیام‌های reversal، معمولاً همان MTI با کد پاسخ 00 برمی‌گردانیم
         val response = MessageFactory.buildResponse(message)
 
-        // اگر reversal موفق بود، لاگ کنیم
         try {
             val responseMsg = MessageFactory.parse(response)
             if (responseMsg.getString(39) == "00") {
@@ -136,12 +123,10 @@ class MessageProcessor {
     private fun processUnknownMessage(message: ISOMsg): ByteArray {
         logger.warn("Unknown message type: ${message.getMTI()}")
 
-        // برای پیام‌های ناشناخته، پاسخ خطا برمی‌گردانیم
         return buildErrorResponse("94", "Unknown message type")
     }
 
     private fun validateFinancialMessage(message: ISOMsg): Pair<String, String>? {
-        // بررسی وجود فیلدهای اجباری
         if (!message.hasField(2)) {
             return Pair("02", "PAN required")
         }
@@ -158,7 +143,6 @@ class MessageProcessor {
             return Pair("12", "STAN required")
         }
 
-        // بررسی فرمت PAN
         if (message.hasField(2)) {
             val pan = message.getString(2)
             if (pan.length < 13 || pan.length > 19 || !pan.all { it.isDigit() }) {
@@ -166,7 +150,6 @@ class MessageProcessor {
             }
         }
 
-        // بررسی مقدار تراکنش
         if (message.hasField(4)) {
             val amountStr = message.getString(4)
             try {
@@ -179,19 +162,16 @@ class MessageProcessor {
             }
         }
 
-        // همه چیز OK
         return null
     }
 
     private fun simulateTransactionProcessing(message: ISOMsg) {
-        // شبیه‌سازی تاخیر در پردازش
         try {
             Thread.sleep(50)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
         }
 
-        // شبیه‌سازی تولید کد تأیید
         if (message.getMTI() == "0100" || message.getMTI() == "0200") {
             logger.debug("Simulating transaction processing...")
         }
@@ -203,18 +183,15 @@ class MessageProcessor {
         val errorMsg = ISOMsg()
         errorMsg.packager = MessageFactory.getPackager()
 
-        // سعی می‌کنیم یک پاسخ معتبر بر اساس کد خطا ایجاد کنیم
         errorMsg.setMTI("0810")
         errorMsg.set(39, responseCode)
 
-        // اضافه کردن اطلاعات اضافی در صورت امکان
         try {
             errorMsg.set(44, reason.take(25))
         } catch (e: Exception) {
             logger.debug("Could not set field 44: ${e.message}")
         }
 
-        // تنظیم فیلدهای تاریخ و زمان
         setBasicDateTimeFields(errorMsg)
 
         return errorMsg.pack()
@@ -223,7 +200,6 @@ class MessageProcessor {
     private fun setBasicDateTimeFields(msg: ISOMsg) {
         val currentTime = java.time.LocalDateTime.now()
 
-        // تنظیم فیلدهای تاریخ و زمان - به صورت ساده و بدون چک کردن packager
         try {
             val transmissionDateTime = currentTime.format(java.time.format.DateTimeFormatter.ofPattern("MMddHHmmss"))
             msg.set(7, transmissionDateTime)
@@ -248,7 +224,6 @@ class MessageProcessor {
 
     fun healthCheck(): Boolean {
         return try {
-            // بررسی سلامت packager
             val testMsg = ISOMsg()
             testMsg.packager = MessageFactory.getPackager()
             testMsg.setMTI("0800")
@@ -261,7 +236,6 @@ class MessageProcessor {
         }
     }
 
-    // متد کمکی برای بررسی اینکه آیا پیام خروجی معتبر است
     fun isValidResponse(responseBytes: ByteArray): Boolean {
         return try {
             MessageFactory.parse(responseBytes)

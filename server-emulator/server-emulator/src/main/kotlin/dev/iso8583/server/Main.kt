@@ -12,7 +12,7 @@ import java.net.ServerSocket
 fun main() = runBlocking {
     val logger = LoggerFactory.getLogger("Main")
     logger.info("Starting ISO8583 Server Emulator...")
-
+//    startSimpleHttpServer()
     // load config (from resources/config.yml). For dev, we read from working dir resources path
     val cfgFile = File("src/main/resources/config.yml")
     val mapper = YAMLMapper()

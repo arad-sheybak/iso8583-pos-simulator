@@ -6,18 +6,15 @@ object MessageFactory {
     private val packager: GenericPackager
 
     init {
-        // ایجاد یک پکیجر ساده
         packager = createSimplePackager()
     }
 
     private fun createSimplePackager(): GenericPackager {
         val packager = GenericPackager()
 
-        // ایجاد آرایه از فیلد پکیجرها
         val maxField = 128
         val fieldPackagers = arrayOfNulls<org.jpos.iso.ISOFieldPackager>(maxField + 1)
 
-        // تعریف فیلدهای اصلی با استفاده از کلاس‌های صحیح
         fieldPackagers[0] = org.jpos.iso.IFA_NUMERIC(4, "Message Type Indicator")
         fieldPackagers[1] = org.jpos.iso.IFA_BITMAP(8, "Bitmap")
         fieldPackagers[2] = org.jpos.iso.IFA_LLNUM(19, "Primary Account Number")
@@ -49,7 +46,6 @@ object MessageFactory {
         val resp = ISOMsg()
         resp.packager = packager
 
-        // تنظیم MTI پاسخ
         val mti = message.getMTI()
         resp.setMTI(when (mti) {
             "0200" -> "0210"
@@ -58,7 +54,6 @@ object MessageFactory {
             else -> "0210"
         })
 
-        // کپی فیلدهای مهم
         val fieldsToCopy = listOf(2, 3, 4, 7, 11, 12, 13, 41, 42)
 
         fieldsToCopy.forEach { fieldNum ->
@@ -67,12 +62,10 @@ object MessageFactory {
                     val fieldValue = message.getString(fieldNum)
                     resp.set(fieldNum, fieldValue)
                 } catch (e: Exception) {
-                    // نادیده گرفتن خطا
                 }
             }
         }
 
-        // تنظیم کد پاسخ
         resp.set(39, determineResponseCode(message))
 
         return resp.pack()
@@ -115,17 +108,14 @@ object MessageFactory {
         return echoMsg.pack()
     }
 
-    // اضافه کردن متدهای گمشده
     fun createSignOnResponse(): ByteArray {
         val signOnMsg = ISOMsg()
         signOnMsg.packager = packager
         signOnMsg.setMTI("0810")
         signOnMsg.set(39, "00")
-        // اضافه کردن فیلدهای اضافی برای sign-on
         try {
             signOnMsg.set(70, "001")
         } catch (e: Exception) {
-            // نادیده گرفتن اگر فیلد 70 وجود ندارد
         }
         return signOnMsg.pack()
     }
@@ -135,11 +125,9 @@ object MessageFactory {
         signOffMsg.packager = packager
         signOffMsg.setMTI("0810")
         signOffMsg.set(39, "00")
-        // اضافه کردن فیلدهای اضافی برای sign-off
         try {
             signOffMsg.set(70, "002")
         } catch (e: Exception) {
-            // نادیده گرفتن اگر فیلد 70 وجود ندارد
         }
         return signOffMsg.pack()
     }
